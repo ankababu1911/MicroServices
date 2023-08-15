@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Mango.Services.ShoppingCartAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230815095300_addShoppingCartTables")]
+    [Migration("20230815125916_addShoppingCartTables")]
     partial class addShoppingCartTables
     {
         /// <inheritdoc />
@@ -27,7 +27,10 @@ namespace Mango.Services.ShoppingCartAPI.Migrations
             modelBuilder.Entity("Mango.Services.ShoppingCartAPI.Models.CartDetails", b =>
                 {
                     b.Property<int>("CartDetailsId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartDetailsId"));
 
                     b.Property<int>("CartHeaderId")
                         .HasColumnType("int");
@@ -39,6 +42,8 @@ namespace Mango.Services.ShoppingCartAPI.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("CartDetailsId");
+
+                    b.HasIndex("CartHeaderId");
 
                     b.ToTable("CartDetails");
                 });
@@ -66,7 +71,7 @@ namespace Mango.Services.ShoppingCartAPI.Migrations
                 {
                     b.HasOne("Mango.Services.ShoppingCartAPI.Models.CartHeader", "CartHeader")
                         .WithMany()
-                        .HasForeignKey("CartDetailsId")
+                        .HasForeignKey("CartHeaderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
