@@ -1,4 +1,5 @@
-﻿using Mango.web.Models;
+﻿using IdentityModel;
+using Mango.web.Models;
 using Mango.web.Service.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,11 @@ namespace Mango.web.Controllers
     public class HomeController : Controller
     {
         private readonly IProductService _productService;
-
-        public HomeController( IProductService productService)
+        private readonly ICartService _cartService;
+        public HomeController( IProductService productService, ICartService cartService)
         {
             _productService = productService;
+            _cartService = cartService;
         }
 
         public async Task<IActionResult> Index()
@@ -45,7 +47,29 @@ namespace Mango.web.Controllers
             }
             return View(obj);
         }
-
+        [Authorize]
+        [HttpPost]
+        [ActionName("ProductDetails")]
+        public async Task<IActionResult> ProductDetails(ProductDto productDto)
+        {
+           CartDto cartDto = new CartDto()
+           {
+               CartHeader=new CartHeaderDto { UserId= User.Claims.Where(u => u.Type == JwtClaimTypes.Subject)?.FirstOrDefault()?.Value }
+           };
+            CartDetailsDto cartDetailsDto = new CartDetailsDto() { Count=productDto.Count,ProductId=productDto.ProductId};
+            cartDto.CartDetails=new List<CartDetailsDto>() { cartDetailsDto };
+            ResponseDto? response = await _cartService.UpsertCartAsync(cartDto);
+            if (response != null && response.IsSuccess)
+            {
+                TempData["success"] = "Item has been added to the shopping cart";
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                TempData["error"] = response?.Message;
+            }
+            return View(productDto);
+        }
         public IActionResult Privacy()
         {
             return View();

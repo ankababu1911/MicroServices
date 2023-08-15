@@ -17,7 +17,7 @@ namespace Mango.Services.ShoppingCartAPI.Service
             var response = await client.GetAsync($"api/coupon/GetByCode/{couponCode}");
             var apiContent = await response.Content.ReadAsStringAsync();
             var contentResult = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-            if (contentResult.IsSuccess)
+            if (contentResult!=null && contentResult.IsSuccess)
             {
                 return JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(contentResult.Result));
             }

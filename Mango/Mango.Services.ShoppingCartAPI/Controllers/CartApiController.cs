@@ -48,7 +48,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                     CouponDto couponDto = await _couponService.GetCoupon(cartDto.CartHeader.CouponCode);
                     if(couponDto != null && cartDto.CartHeader.CartTotal>couponDto.MinAmount) {
                         cartDto.CartHeader.CartTotal-=couponDto.DiscountAmount;
-                        cartDto.CartHeader.Discount -= couponDto.DiscountAmount;
+                        cartDto.CartHeader.Discount = couponDto.DiscountAmount;
                     }
                 }
                 _responseDto.Result = cartDto;
@@ -62,7 +62,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             return _responseDto;
         }
 
-        [HttpPost("ApplyCoupon")]
+        [HttpPost("CouponApply")]
         public async Task<ResponseDto> ApplyCoupon([FromBody] CartDto cartDto)
         {
             try
