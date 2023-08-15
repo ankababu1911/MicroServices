@@ -46,7 +46,8 @@ namespace Mango.Services.AuthAPI.Service
                 if (isValid && !string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(user.PhoneNumber))
                 {
                     userDto.Email = user.Email; userDto.ID = user.Id; userDto.Name = user.Name; userDto.PhoneNumber = user.PhoneNumber;
-                    var token = _jwtTokenGenerator.GenerateToken(user);
+                    var roles=await _userManager.GetRolesAsync(user);
+                    var token = _jwtTokenGenerator.GenerateToken(user,roles);
                     loginResponseDto.User = userDto; loginResponseDto.Token = token;
                 }
             }
