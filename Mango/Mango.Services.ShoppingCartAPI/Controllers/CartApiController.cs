@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.MessageBus;
 using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Models;
 using Mango.Services.ShoppingCartAPI.Models.DTO;
@@ -17,14 +18,17 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         private readonly AppDbContext _appDbContext;
         private readonly IProductService _productService;
         private readonly ICouponService _couponService;
-        public CartApiController(IMapper mapper, AppDbContext appDbContext, IProductService productService, ICouponService couponService)
+        private readonly IMessageBus _messageBus;
+        private readonly IConfiguration _configuration;
+        public CartApiController(IMapper mapper, AppDbContext appDbContext, IProductService productService, ICouponService couponService, IMessageBus messageBus, IConfiguration configuration)
         {
             _responseDto = new();
             _mapper = mapper;
             _appDbContext = appDbContext;
             _productService = productService;
             _couponService = couponService;
-
+            _messageBus = messageBus;
+            _configuration = configuration;
         }
         [HttpGet("GetCart/{userId}")]
         public async Task<ResponseDto> GetCart(string userId)
@@ -139,6 +143,22 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                     _appDbContext.CartHeaders.Remove(cartHeaderToRemove);
                 }
                 await _appDbContext.SaveChangesAsync();
+                _responseDto.Result = true;
+                _responseDto.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                _responseDto.Message = ex.Message.ToString();
+                _responseDto.IsSuccess = false;
+            }
+            return _responseDto;
+        }
+        [HttpPost("EmailCartRequest")]
+        public async Task<ResponseDto> EmailCartRequest([FromBody] CartDto cartDto)
+        {
+            try
+            {
+               await _messageBus.PublishMessage(cartDto, _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCart"));
                 _responseDto.Result = true;
                 _responseDto.IsSuccess = true;
             }
